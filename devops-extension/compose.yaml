@@ -1,0 +1,38 @@
+services:
+  app:
+    build:
+      context: ./app
+    image: hybrid-cloud-operations-app:1.0
+    container_name: hco-extension-app
+    ports:
+      - "3100:3000"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  jenkins:
+    build:
+      context: ./jenkins
+    image: hco-jenkins:local
+    container_name: hco-jenkins
+    user: root
+    ports:
+      - "8090:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ..:/workspace
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:
+
+
